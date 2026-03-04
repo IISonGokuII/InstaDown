@@ -1,0 +1,85 @@
+name: Build APK (Stable)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 34
+        build-tools: 34.0.0
+
+    - name: Download Gradle Wrapper
+      run: |
+        wget -q https://services.gradle.org/distributions/gradle-8.2.1-bin.zip -O /tmp/gradle.zip
+        unzip -q /tmp/gradle.zip -d $HOME
+        export PATH=$HOME/gradle-8.2.1/bin:$PATH
+        gradle --version
+        echo "$HOME/gradle-8.2.1/bin" >> $GITHUB_PATH
+
+    - name: Generate Wrapper
+      run: |
+        gradle wrapper --gradle-version 8.2.1
+        chmod +x gradlew
+
+    - name: Clean Build
+      run: ./gradlew clean
+
+    - name: Build Debug APK
+      run: |
+        ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+      env:
+        ANDROID_HOME: ${{ env.ANDROID_HOME }}
+        ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
+      continue-on-error: true
+
+    - name: Check Build Output
+      run: |
+        echo "=== Build Log ==="
+        tail -100 build.log
+        echo "=== Find APK ==="
+        find . -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+        echo "=== Build Directory ==="
+        ls -la app/build/ 2>/dev/null || echo "No build dir"
+        ls -la app/build/outputs/ 2>/dev/null || echo "No outputs dir"
+
+    - name: Upload Build Log
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: build-log
+        path: build.log
+
+    - name: Prepare APK
+      run: |
+        mkdir -p apk-output
+        if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+          cp app/build/outputs/apk/debug/app-debug.apk apk-output/InstaDown-debug.apk
+          echo "APK found and copied"
+        else
+          echo "APK not found at expected location"
+          find . -name "*.apk" -exec cp {} apk-output/ \;
+        fi
+        ls -la apk-output/
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: InstaDown-APK
+        path: apk-output/*.apk
+        if-no-files-found: warn
