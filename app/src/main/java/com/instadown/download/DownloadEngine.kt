@@ -1,7 +1,6 @@
 package com.instadown.download
 
-import android.app.DownloadManager
-nimport android.content.Context
+import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import androidx.core.net.toFile
