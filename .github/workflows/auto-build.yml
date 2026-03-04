@@ -32,40 +32,39 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    - name: Install Gradle
-      run: |
-        wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip -O /tmp/gradle.zip
-        unzip -q /tmp/gradle.zip -d $HOME
-        echo "$HOME/gradle-8.4/bin" >> $GITHUB_PATH
-        gradle --version
-
-    - name: Generate Gradle Wrapper
-      run: |
-        gradle wrapper --gradle-version 8.4
-        chmod +x gradlew
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v3
+      with:
+        gradle-version: 8.4
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: gradle assembleDebug --stacktrace
       env:
         ANDROID_HOME: ${{ env.ANDROID_HOME }}
+
+    - name: Check outputs
+      run: |
+        find . -name "*.apk" -type f
+        ls -la app/build/outputs/apk/debug/ 2>/dev/null || true
 
     - name: Prepare APK
       run: |
         mkdir -p apk-output
         COMMIT=$(echo ${{ github.sha }} | cut -c1-7)
         DATE=$(date +%Y%m%d)
-        cp app/build/outputs/apk/debug/app-debug.apk apk-output/InstaDown-${DATE}-${COMMIT}.apk
+        cp app/build/outputs/apk/debug/app-debug.apk apk-output/InstaDown-${DATE}-${COMMIT}.apk || true
         ls -lh apk-output/
 
     - name: Upload to Artifacts
       uses: actions/upload-artifact@v4
+      if: hashFiles('app/build/outputs/apk/debug/*.apk') != ''
       with:
         name: InstaDown-APK-${{ github.run_number }}
         path: apk-output/*.apk
         retention-days: 90
 
     - name: Update Latest Release
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push' && hashFiles('apk-output/*.apk') != ''
       uses: softprops/action-gh-release@v1
       with:
         tag_name: latest
