@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">InstaDown</string>
+    <string name="quick_download">Quick Download</string>
+    
+    <!-- Navigation -->
+    <string name="nav_download">Download</string>
+    <string name="nav_gallery">Gallery</string>
+    <string name="nav_queue">Queue</string>
+    <string name="nav_settings">Settings</string>
+    
+    <!-- Main Screen -->
+    <string name="paste_url">Paste Instagram URL</string>
+    <string name="url_hint">https://instagram.com/p/...</string>
+    <string name="download">Download</string>
+    <string name="cancel">Cancel</string>
+    <string name="retry">Retry</string>
+    <string name="delete">Delete</string>
+    <string name="share">Share</string>
+    
+    <!-- Stats -->
+    <string name="active">Active</string>
+    <string name="completed">Completed</string>
+    <string name="downloaded">Downloaded</string>
+    
+    <!-- Download Status -->
+    <string name="status_pending">Pending</string>
+    <string name="status_downloading">Downloading</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_cancelled">Cancelled</string>
+    
+    <!-- Settings -->
+    <string name="appearance">Appearance</string>
+    <string name="theme">Theme</string>
+    <string name="downloads">Downloads</string>
+    <string name="wifi_only">WiFi Only</string>
+    <string name="wifi_only_desc">Download only when connected to WiFi</string>
+    <string name="parallel_downloads">Parallel Downloads</string>
+    <string name="notifications">Notifications</string>
+    <string name="download_success">Download Success</string>
+    <string name="download_error">Download Error</string>
+    <string name="download_progress">Download Progress</string>
+    <string name="security">Security</string>
+    <string name="app_lock">App Lock</string>
+    <string name="app_lock_desc">Require authentication to open app</string>
+    <string name="biometric">Biometric</string>
+    <string name="biometric_desc">Use fingerprint or face recognition</string>
+    <string name="hidden_folder">Hidden Folder</string>
+    <string name="hidden_folder_desc">Store downloads in hidden folder</string>
+    
+    <!-- Messages -->
+    <string name="invalid_url">Invalid Instagram URL</string>
+    <string name="download_started">Download started</string>
+    <string name="download_completed">Download completed</string>
+    <string name="download_failed">Download failed</string>
+    <string name="clipboard_empty">Clipboard is empty</string>
+    <string name="no_internet">No internet connection</string>
+    <string name="storage_permission_required">Storage permission required</string>
+    <string name="rate_limited">Rate limited. Please try again later.</string>
+    
+    <!-- Notification -->
+    <string name="notification_channel_downloads">Downloads</string>
+    <string name="notification_download_progress">Downloading…</string>
+    <string name="notification_download_complete">Download complete</string>
+    <string name="notification_download_failed">Download failed</string>
+    <string name="notification_tap_to_open">Tap to open</string>
+    <string name="notification_tap_to_retry">Tap to retry</string>
+</resources>
