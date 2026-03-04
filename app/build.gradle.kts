@@ -1,9 +1,9 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.hilt.android)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.kotlin.serialization)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -41,15 +41,6 @@ android {
             buildConfigField("boolean", "DEBUG_MODE", "false")
         }
     }
-    
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("armeabi-v7a", "arm64-v8a", "x86_64")
-            isUniversalApk = false
-        }
-    }
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -69,16 +60,10 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.13"
     }
-    
-    kotlinOptions {
-        jvmTarget = "17"
-    }
 
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-            excludes += "/META-INF/INDEX.LIST"
-            excludes += "/META-INF/io.netty.versions.properties"
         }
     }
 
@@ -89,83 +74,62 @@ android {
 
 dependencies {
     // Core
-    coreLibraryDesugaring(libs.desugar)
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.splashscreen)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.activity:activity-compose:1.9.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     
     // Lifecycle
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.lifecycle.service)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.1")
+    implementation("androidx.lifecycle:lifecycle-service:2.8.1")
     
-    // Compose
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons)
-    implementation(libs.androidx.navigation.compose)
+    // Compose BOM
+    val composeBom = platform("androidx.compose:compose-bom:2024.05.00")
+    implementation(composeBom)
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
     
     // DataStore & Encrypted Prefs
-    implementation(libs.androidx.datastore)
-    implementation(libs.androidx.security.crypto)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     
     // Room
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.room.paging)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.paging.runtime)
-    implementation(libs.androidx.paging.compose)
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
     
     // WorkManager
-    implementation(libs.androidx.work.runtime)
-    implementation(libs.hilt.work)
-    ksp(libs.hilt.compiler)
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
     
     // Media
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.ui)
-    implementation(libs.androidx.media3.session)
-    implementation(libs.androidx.media3.datasource)
-    implementation(libs.coil.compose)
-    implementation(libs.coil.video)
-    implementation(libs.coil.network)
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
+    implementation("io.coil-kt.coil3:coil-compose:3.0.0-alpha06")
     
     // Networking
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.okhttp)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.logging)
+    implementation("io.ktor:ktor-client-core:2.3.7")
+    implementation("io.ktor:ktor-client-okhttp:2.3.7")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     
     // DI
-    implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
-    ksp(libs.hilt.compiler)
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    ksp("com.google.dagger:hilt-compiler:2.51.1")
     
     // Serialization
-    implementation(libs.kotlinx.serialization.json)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     
     // Security
-    implementation(libs.androidx.biometric)
-    implementation(libs.play.integrity)
-    
-    // Testing
-    testImplementation(libs.junit)
-    testImplementation(libs.mockk)
-    testImplementation(libs.turbine)
-    testImplementation(libs.ktor.client.mock)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    implementation("androidx.biometric:biometric:1.1.0")
 }
