@@ -1,0 +1,85 @@
+name: Auto Build & Release
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Cache Gradle
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Install Gradle
+      run: |
+        wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip -O /tmp/gradle.zip
+        unzip -q /tmp/gradle.zip -d $HOME
+        echo "$HOME/gradle-8.4/bin" >> $GITHUB_PATH
+        gradle --version
+
+    - name: Generate Gradle Wrapper
+      run: |
+        gradle wrapper --gradle-version 8.4
+        chmod +x gradlew
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug --stacktrace
+      env:
+        ANDROID_HOME: ${{ env.ANDROID_HOME }}
+
+    - name: Prepare APK
+      run: |
+        mkdir -p apk-output
+        COMMIT=$(echo ${{ github.sha }} | cut -c1-7)
+        DATE=$(date +%Y%m%d)
+        cp app/build/outputs/apk/debug/app-debug.apk apk-output/InstaDown-${DATE}-${COMMIT}.apk
+        ls -lh apk-output/
+
+    - name: Upload to Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: InstaDown-APK-${{ github.run_number }}
+        path: apk-output/*.apk
+        retention-days: 90
+
+    - name: Update Latest Release
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: latest
+        name: Latest Build
+        body: |
+          Automatischer Build vom ${{ github.event.head_commit.timestamp }}
+          
+          Commit: ${{ github.event.head_commit.message }}
+          
+          ## Download
+          Die APK ist unter Assets verfügbar.
+        files: apk-output/*.apk
+        draft: false
+        prerelease: false
+        make_latest: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
