@@ -2,7 +2,14 @@
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue.svg)](https://kotlinlang.org)
 [![Android](https://img.shields.io/badge/Android-API%2026+-green.svg)](https://developer.android.com)
+[![Build](https://github.com/IISonGokuII/InstaDown/actions/workflows/auto-build.yml/badge.svg)](https://github.com/IISonGokuII/InstaDown/actions)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+## 📥 Download APK
+
+**[⬇️ Latest APK Download](https://github.com/IISonGokuII/InstaDown/releases/tag/latest)**
+
+Die App wird bei jedem Commit automatisch gebaut und unter [Releases](https://github.com/IISonGokuII/InstaDown/releases) veröffentlicht.
 
 Eine native Android-App zum Herunterladen von Instagram-Medien mit session-basierten Web-Requests, robustem Anti-Detection-Layer und moderner Kotlin/Jetpack Compose Architektur.
 
