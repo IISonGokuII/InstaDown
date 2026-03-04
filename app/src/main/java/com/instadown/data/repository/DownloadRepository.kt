@@ -1,9 +1,6 @@
 package com.instadown.data.repository
 
 import android.content.Context
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
 import com.instadown.data.local.InstaDownDatabase
 import com.instadown.data.local.entity.DownloadEntity
 import com.instadown.data.model.DownloadItem
@@ -12,6 +9,7 @@ import com.instadown.data.model.MediaType
 import com.instadown.data.model.Quality
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -32,16 +30,6 @@ class DownloadRepository @Inject constructor(
         }
     }
 
-    fun getDownloadsPaging(): Flow<PagingData<DownloadEntity>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 20,
-                enablePlaceholders = false
-            ),
-            pagingSourceFactory = { downloadDao.getDownloadsPaging() }
-        ).flow
-    }
-
     fun getActiveDownloads(): Flow<List<DownloadItem>> {
         return downloadDao.getActiveDownloads().map { entities ->
             entities.map { it.toDownloadItem() }
@@ -49,7 +37,7 @@ class DownloadRepository @Inject constructor(
     }
 
     fun getDownloadsByStatus(status: DownloadStatus): Flow<List<DownloadItem>> {
-        return downloadDao.getDownloadsByStatus(status).map { entities ->
+        return downloadDao.getDownloadsByStatus(status.name).map { entities ->
             entities.map { it.toDownloadItem() }
         }
     }
@@ -66,11 +54,11 @@ class DownloadRepository @Inject constructor(
         val entity = DownloadEntity(
             id = id,
             url = url,
-            mediaType = mediaType,
+            mediaType = mediaType.name,
             username = username,
             caption = caption,
             thumbnailUrl = thumbnailUrl,
-            quality = quality
+            quality = quality.name
         )
         downloadDao.insertDownload(entity)
         return id
@@ -81,20 +69,30 @@ class DownloadRepository @Inject constructor(
     }
 
     suspend fun updateStatus(id: String, status: DownloadStatus) {
-        downloadDao.updateStatus(id, status)
+        downloadDao.updateStatus(id, status.name)
     }
 
     suspend fun markCompleted(id: String, filePath: String) {
-        downloadDao.markCompleted(
-            id = id,
-            status = DownloadStatus.COMPLETED,
-            filePath = filePath,
-            completedAt = System.currentTimeMillis()
-        )
+        val entity = downloadDao.getDownloadById(id)
+        entity?.let {
+            val updated = it.copy(
+                status = DownloadStatus.COMPLETED.name,
+                filePath = filePath,
+                completedAt = System.currentTimeMillis()
+            )
+            downloadDao.updateDownload(updated)
+        }
     }
 
     suspend fun markFailed(id: String, errorMessage: String) {
-        downloadDao.markFailed(id, DownloadStatus.FAILED, errorMessage)
+        val entity = downloadDao.getDownloadById(id)
+        entity?.let {
+            val updated = it.copy(
+                status = DownloadStatus.FAILED.name,
+                errorMessage = errorMessage
+            )
+            downloadDao.updateDownload(updated)
+        }
     }
 
     suspend fun deleteDownload(id: String) {
@@ -106,14 +104,10 @@ class DownloadRepository @Inject constructor(
     }
 
     suspend fun clearCompleted() {
-        downloadDao.clearCompletedDownloads()
-    }
-
-    fun getDownloadStats(): Flow<DownloadStats> {
-        return downloadDao.getTotalDownloadedBytes().map { bytes ->
-            DownloadStats(
-                totalBytes = bytes ?: 0L
-            )
+        val completed = downloadDao.getDownloadsByStatus(DownloadStatus.COMPLETED.name).first()
+        completed.forEach { entity ->
+            entity.filePath?.let { path -> File(path).delete() }
+            downloadDao.deleteDownloadById(entity.id)
         }
     }
 
@@ -122,15 +116,18 @@ class DownloadRepository @Inject constructor(
     }
 
     suspend fun setHidden(id: String, isHidden: Boolean) {
-        downloadDao.setHidden(id, isHidden)
+        val entity = downloadDao.getDownloadById(id)
+        entity?.let {
+            downloadDao.updateDownload(it.copy(isHidden = isHidden))
+        }
     }
 
     private fun DownloadEntity.toDownloadItem(): DownloadItem {
         return DownloadItem(
             id = id,
             url = url,
-            mediaType = mediaType,
-            status = status,
+            mediaType = MediaType.valueOf(mediaType),
+            status = DownloadStatus.valueOf(status),
             progress = progress,
             filePath = filePath,
             fileName = fileName,
@@ -141,11 +138,7 @@ class DownloadRepository @Inject constructor(
             caption = caption,
             timestamp = timestamp,
             errorMessage = errorMessage,
-            quality = quality
+            quality = Quality.valueOf(quality)
         )
     }
-
-    data class DownloadStats(
-        val totalBytes: Long
-    )
 }
